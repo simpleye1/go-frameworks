@@ -1,0 +1,33 @@
+dependenciesRules:
+  - package: "**.interfaces.**"
+    shouldOnlyDependsOn:
+      - "**.interfaces.**"
+      - "**.application.**"
+      - "**.pkg.**"
+  - package: "**.application.**"
+    shouldOnlyDependsOn:
+      - "**.application.**"
+      - "**.domain.**"
+      - "**.pkg.**"
+  - package: "**.domain.**"
+    shouldOnlyDependsOn:
+      - "**.application.services.**"
+      - "**.domain.**"
+      - "**.pkg.**"
+  - package: "**.infrastructure.**"
+    shouldOnlyDependsOn:
+      - "**.domain.clients.**"
+      - "**.domain.repos.**"
+      - "**.infrastructure.**"
+      - "**.pkg.**"
+
+contentsRules:
+  - package: "**.application.services"
+    shouldNotContainMethods: true
+    shouldNotContainFunctions: true
+  - package: "**.domain.clients"
+    shouldNotContainMethods: true
+    shouldNotContainFunctions: true
+  - package: "**.domain.repos"
+    shouldNotContainMethods: true
+    shouldNotContainFunctions: true
