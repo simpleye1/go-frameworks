@@ -4,8 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
-	"test/internal/app/module1/infrastructure/exceptions"
-	exception2 "test/internal/app/module1/interfaces/exceptions"
+	"test/internal/app/github/infrastructure/exceptions"
+	exception2 "test/internal/app/github/interfaces/exceptions"
 	"test/internal/pkg/context"
 )
 

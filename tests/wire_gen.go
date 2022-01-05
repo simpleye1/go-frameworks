@@ -9,10 +9,12 @@ import (
 	"github.com/google/wire"
 	"test/internal/app"
 	context2 "test/internal/app/context"
-	"test/internal/app/module1/application"
-	"test/internal/app/module1/domain/services"
-	"test/internal/app/module1/infrastructure/repos"
-	"test/internal/app/module1/interfaces/apis"
+	"test/internal/app/github/application"
+	services2 "test/internal/app/github/application/services"
+	"test/internal/app/github/domain/services"
+	"test/internal/app/github/infrastructure/clients"
+	"test/internal/app/github/infrastructure/repos"
+	"test/internal/app/github/interfaces/apis"
 	"test/internal/pkg/cachestore"
 	"test/internal/pkg/config"
 	"test/internal/pkg/database"
@@ -21,6 +23,7 @@ import (
 	"test/tests/pkg"
 	"test/tests/pkg/context"
 	database2 "test/tests/pkg/database"
+	"test/tests/pkg/github"
 	"test/tests/pkg/redis"
 	"test/tests/pkg/testcontainer"
 	"test/tests/pkg/transports/http"
@@ -72,29 +75,35 @@ func CreateBackground(cf string) (*testcontainer.Background, func(), error) {
 		return nil, nil, err
 	}
 	redisStore := cachestore.NewRedisCache(client)
+	githubClient, err := github.NewGithub()
+	if err != nil {
+		return nil, nil, err
+	}
 	testInfraContext := &context.TestInfraContext{
-		MigrateInit: init,
-		Config:      viper,
-		Log:         logger,
-		Route:       engine,
-		GormDB:      gormDB,
-		DB:          db,
-		CacheStore:  redisStore,
-		Context:     contextContext,
+		MigrateInit:  init,
+		Config:       viper,
+		Log:          logger,
+		Route:        engine,
+		GormDB:       gormDB,
+		DB:           db,
+		CacheStore:   redisStore,
+		Context:      contextContext,
+		GithubClient: githubClient,
 	}
 	api := apis.NewAPI(logger, testInfraContext)
-	postgresDetailRepository := repos.NewPostgresDetailsRepository(logger, gormDB)
+	githubClientImpl := clients.NewGithubClientImpl(githubClient, contextContext)
+	githubServiceImpl := services.NewUserDetailServiceImpl(logger, githubClientImpl)
+	githubApplication := application.NewUserDetailsApplication(logger, githubServiceImpl)
+	githubAPI := apis.NewGithubAPI(api, githubApplication)
 	postgresUserRepository := repos.NewPostgresUserRepository(logger, gormDB)
-	userDetailServiceImpl := services.NewUserDetailServiceImpl(logger, postgresDetailRepository, postgresUserRepository)
-	userDetailApplication := application.NewUserDetailsApplication(logger, userDetailServiceImpl)
-	userDetailAPI := apis.NewUserDetailAPI(api, userDetailApplication)
+	postgresDetailRepository := repos.NewPostgresDetailsRepository(logger, gormDB)
 	appContext := &context2.AppContext{
-		InfraContext:          testInfraContext,
-		UserDetailAPI:         userDetailAPI,
-		UserDetailApplication: userDetailApplication,
-		UserRepository:        postgresUserRepository,
-		DetailRepository:      postgresDetailRepository,
-		UserDetailService:     userDetailServiceImpl,
+		InfraContext:      testInfraContext,
+		GithubAPI:         githubAPI,
+		GithubApplication: githubApplication,
+		UserRepository:    postgresUserRepository,
+		DetailRepository:  postgresDetailRepository,
+		GithubService:     githubServiceImpl,
 	}
 	background := &testcontainer.Background{
 		AppContext:            appContext,
@@ -104,7 +113,7 @@ func CreateBackground(cf string) (*testcontainer.Background, func(), error) {
 	}, nil
 }
 
-func CreateUserDetailAPI(cf string, s services.UserDetailService) (*apis.UserDetailAPI, error) {
+func CreateGithubAPI(cf string, s services2.GithubService) (*apis.GithubAPI, error) {
 	viper, err := config.New(cf)
 	if err != nil {
 		return nil, err
@@ -126,9 +135,9 @@ func CreateUserDetailAPI(cf string, s services.UserDetailService) (*apis.UserDet
 		CacheStore: memoryStore,
 	}
 	api := apis.NewAPI(logger, testMockAPIInfraContext)
-	userDetailApplication := application.NewUserDetailsApplication(logger, s)
-	userDetailAPI := apis.NewUserDetailAPI(api, userDetailApplication)
-	return userDetailAPI, nil
+	githubApplication := application.NewUserDetailsApplication(logger, s)
+	githubAPI := apis.NewGithubAPI(api, githubApplication)
+	return githubAPI, nil
 }
 
 // wire.go:

@@ -2,24 +2,28 @@ package context
 
 import (
 	"github.com/google/wire"
-	"test/internal/app/module1/application"
-	"test/internal/app/module1/domain/services"
-	"test/internal/app/module1/infrastructure/repos"
-	"test/internal/app/module1/interfaces/apis"
+	"test/internal/app/github/application"
+	services2 "test/internal/app/github/application/services"
+	"test/internal/app/github/domain/clients"
+	repos2 "test/internal/app/github/domain/repos"
+	"test/internal/app/github/domain/services"
+	clients2 "test/internal/app/github/infrastructure/clients"
+	"test/internal/app/github/infrastructure/repos"
+	"test/internal/app/github/interfaces/apis"
 	"test/internal/pkg/context"
 )
 
 type AppContext struct {
 	context.InfraContext
 
-	*apis.UserDetailAPI
+	*apis.GithubAPI
 
-	*application.UserDetailApplication
+	*application.GithubApplication
 
-	repos.UserRepository
-	repos.DetailRepository
+	repos2.UserRepository
+	repos2.DetailRepository
 
-	services.UserDetailService
+	services2.GithubService
 }
 
 var ProviderSet = wire.NewSet(
@@ -28,6 +32,8 @@ var ProviderSet = wire.NewSet(
 	APIProviderSet,
 	// Application
 	ApplicationProviderSet,
+	// Client
+	ClientProviderSet,
 	// Service
 	ServiceProviderSet,
 	// Repo
@@ -36,21 +42,26 @@ var ProviderSet = wire.NewSet(
 
 var APIProviderSet = wire.NewSet(
 	apis.NewAPI,
-	apis.NewUserDetailAPI,
+	apis.NewGithubAPI,
 )
 
 var ApplicationProviderSet = wire.NewSet(
 	application.NewUserDetailsApplication,
 )
 
+var ClientProviderSet = wire.NewSet(
+	clients2.NewGithubClientImpl,
+	wire.Bind(new(clients.GithubClient), new(*clients2.GithubClientImpl)),
+)
+
 var ServiceProviderSet = wire.NewSet(
 	services.NewUserDetailServiceImpl,
-	wire.Bind(new(services.UserDetailService), new(*services.UserDetailServiceImpl)),
+	wire.Bind(new(services2.GithubService), new(*services.GithubServiceImpl)),
 )
 
 var RepoProviderSet = wire.NewSet(
 	repos.NewPostgresDetailsRepository,
 	repos.NewPostgresUserRepository,
-	wire.Bind(new(repos.UserRepository), new(*repos.PostgresUserRepository)),
-	wire.Bind(new(repos.DetailRepository), new(*repos.PostgresDetailRepository)),
+	wire.Bind(new(repos2.UserRepository), new(*repos.PostgresUserRepository)),
+	wire.Bind(new(repos2.DetailRepository), new(*repos.PostgresDetailRepository)),
 )

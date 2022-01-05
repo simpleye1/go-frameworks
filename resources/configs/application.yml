@@ -1,15 +1,16 @@
 app:
   name: test
 http:
+  host: localhost
   mode: release
-  port: 8081
+  port: 8080
 db:
-  enable: true
+  enable: false
   url: "postgres://root:root@localhost:5432/test?sslmode=disable"
   migrations:
     dir: "/resources/db/migrations"
 redis:
-  enable: true
+  enable: false
   network: "tcp"
   url: "localhost:6379"
 log:
@@ -24,5 +25,10 @@ telemetry:
   serviceName: test
   endpoint: "localhost:4317"
   insecure: true
+github:
+  isEnterprise: false
+  keyFile: /resources/github/tmtbehooktest.2022-01-04.private-key.pem
+  appId: 162614
+  installationID: 21951054
 
 

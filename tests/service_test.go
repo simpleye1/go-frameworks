@@ -5,13 +5,15 @@ import (
 	"testing"
 )
 
-func TestDetailsRepository_GetUserDetail(t *testing.T) {
+func TestGithubService_GetRepoAllCommits(t *testing.T) {
 	background := setUp()
-	background.MustSetUpDb("get_user_detail")
-	detail, err := background.UserDetailService.GetUserDetail(1)
+	rcs, err := background.GithubService.GetRepoAllCommits("foobar", "foobar", "", 0)
 	if err != nil {
 		t.Fatalf("userDetail service get userDetail error,%+v", err)
 	}
-	assert.Equal(t, uint64(1), detail.ID)
-	assert.Equal(t, float32(1), detail.Price)
+	assert.True(t, len(rcs) > 0)
+	assert.NotNil(t, rcs[0].Commit)
+	assert.NotNil(t, rcs[0].SHA)
+	assert.NotNil(t, rcs[0].HTMLURL)
+	assert.NotNil(t, rcs[0].Committer)
 }

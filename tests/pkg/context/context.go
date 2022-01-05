@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	github2 "github.com/google/go-github/v41/github"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -14,6 +15,7 @@ import (
 	"test/internal/pkg/log"
 	"test/internal/pkg/migrate"
 	"test/tests/pkg/database"
+	"test/tests/pkg/github"
 	"test/tests/pkg/redis"
 	"test/tests/pkg/transports/http"
 )
@@ -24,14 +26,15 @@ func NewContext() context.Context {
 
 // TestInfraContext Init需要放在Context里面承载，不然会被忽略
 type TestInfraContext struct {
-	MigrateInit *migrate.Init
-	Config      *viper.Viper
-	Log         *zap.Logger
-	Route       *gin.Engine
-	GormDB      *gorm.DB
-	DB          *sql.DB
-	CacheStore  cachestore.Store
-	Context     context.Context
+	MigrateInit  *migrate.Init
+	Config       *viper.Viper
+	Log          *zap.Logger
+	Route        *gin.Engine
+	GormDB       *gorm.DB
+	DB           *sql.DB
+	CacheStore   cachestore.Store
+	Context      context.Context
+	GithubClient *github2.Client
 }
 
 func (a *TestInfraContext) GetConfig() *viper.Viper {
@@ -55,6 +58,9 @@ func (a *TestInfraContext) GetCacheStore() cachestore.Store {
 func (a *TestInfraContext) GetContext() context.Context {
 	return a.Context
 }
+func (a *TestInfraContext) GetGithubClient() *github2.Client {
+	return a.GithubClient
+}
 
 var ProviderSet = wire.NewSet(
 	NewContext,
@@ -67,6 +73,7 @@ var ProviderSet = wire.NewSet(
 	migrate.ProviderSet,
 	http.ProviderSet,
 	cachestore.ProviderSetRedis,
+	github.ProviderSet,
 )
 
 type TestMockAPIInfraContext struct {
@@ -97,6 +104,9 @@ func (a *TestMockAPIInfraContext) GetCacheStore() cachestore.Store {
 func (a *TestMockAPIInfraContext) GetContext() context.Context {
 	return nil
 }
+func (a *TestMockAPIInfraContext) GetGithubClient() *github2.Client {
+	return nil
+}
 
 var APIMockProviderSet = wire.NewSet(
 	NewContext,
@@ -106,4 +116,5 @@ var APIMockProviderSet = wire.NewSet(
 	config.ProviderSet,
 	http.ProviderSet,
 	cachestore.ProviderSetMemory,
+	github.ProviderSet,
 )

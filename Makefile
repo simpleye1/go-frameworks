@@ -15,8 +15,9 @@ build: clean
 .PHONY: clean
 clean:
 	rm -rf dist
+	mkdir dist
 .PHONY: mock
-mock:
+mock: clean
 	mockery --all
 .PHONY: test
 test: mock

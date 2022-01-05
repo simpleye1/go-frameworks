@@ -9,16 +9,18 @@ import (
 	"github.com/google/wire"
 	app2 "test/internal/app"
 	context2 "test/internal/app/context"
-	"test/internal/app/module1/application"
-	"test/internal/app/module1/domain/services"
-	"test/internal/app/module1/infrastructure/repos"
-	"test/internal/app/module1/interfaces/apis"
+	"test/internal/app/github/application"
+	"test/internal/app/github/domain/services"
+	"test/internal/app/github/infrastructure/clients"
+	"test/internal/app/github/infrastructure/repos"
+	"test/internal/app/github/interfaces/apis"
 	"test/internal/pkg"
 	"test/internal/pkg/app"
 	"test/internal/pkg/cachestore"
 	"test/internal/pkg/config"
 	"test/internal/pkg/context"
 	"test/internal/pkg/database"
+	"test/internal/pkg/github"
 	"test/internal/pkg/log"
 	"test/internal/pkg/migrate"
 	"test/internal/pkg/redis"
@@ -92,6 +94,16 @@ func CreateApp(cf string) (*app.Application, func(), error) {
 		return nil, nil, err
 	}
 	redisStore := cachestore.NewRedisCache(client)
+	githubOptions, err := github.NewOptions(viper, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
+	githubClient, err := github.NewGithub(viper, githubOptions, logger)
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	appInfraContext := &context.AppInfraContext{
 		MigrateInit:   init,
 		TelemetryInit: telemetryInit,
@@ -102,20 +114,22 @@ func CreateApp(cf string) (*app.Application, func(), error) {
 		DB:            db,
 		CacheStore:    redisStore,
 		Context:       contextContext,
+		GithubClient:  githubClient,
 	}
 	api := apis.NewAPI(logger, appInfraContext)
-	postgresDetailRepository := repos.NewPostgresDetailsRepository(logger, gormDB)
+	githubClientImpl := clients.NewGithubClientImpl(githubClient, contextContext)
+	githubServiceImpl := services.NewUserDetailServiceImpl(logger, githubClientImpl)
+	githubApplication := application.NewUserDetailsApplication(logger, githubServiceImpl)
+	githubAPI := apis.NewGithubAPI(api, githubApplication)
 	postgresUserRepository := repos.NewPostgresUserRepository(logger, gormDB)
-	userDetailServiceImpl := services.NewUserDetailServiceImpl(logger, postgresDetailRepository, postgresUserRepository)
-	userDetailApplication := application.NewUserDetailsApplication(logger, userDetailServiceImpl)
-	userDetailAPI := apis.NewUserDetailAPI(api, userDetailApplication)
+	postgresDetailRepository := repos.NewPostgresDetailsRepository(logger, gormDB)
 	appContext := &context2.AppContext{
-		InfraContext:          appInfraContext,
-		UserDetailAPI:         userDetailAPI,
-		UserDetailApplication: userDetailApplication,
-		UserRepository:        postgresUserRepository,
-		DetailRepository:      postgresDetailRepository,
-		UserDetailService:     userDetailServiceImpl,
+		InfraContext:      appInfraContext,
+		GithubAPI:         githubAPI,
+		GithubApplication: githubApplication,
+		UserRepository:    postgresUserRepository,
+		DetailRepository:  postgresDetailRepository,
+		GithubService:     githubServiceImpl,
 	}
 	server, cleanup2, err := http.NewServer(httpOptions, logger, engine)
 	if err != nil {

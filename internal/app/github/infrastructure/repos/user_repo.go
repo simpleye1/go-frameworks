@@ -4,6 +4,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"test/internal/app/github/domain/repos"
 )
 
 type PostgresUserRepository struct {
@@ -11,8 +12,8 @@ type PostgresUserRepository struct {
 	db     *gorm.DB
 }
 
-func (p PostgresUserRepository) FindUserById(ID uint64) *UserRecord {
-	var user UserRecord
+func (p PostgresUserRepository) FindUserById(ID uint64) *repos.UserRecord {
+	var user repos.UserRecord
 	result := p.db.First(&user, ID)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil

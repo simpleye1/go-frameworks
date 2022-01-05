@@ -2,7 +2,7 @@ package exceptions
 
 import (
 	"net/http"
-	"test/internal/app/module1/infrastructure/exceptions"
+	"test/internal/app/github/infrastructure/exceptions"
 )
 
 const (
