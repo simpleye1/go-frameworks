@@ -63,6 +63,9 @@ func NewServer(
 		router: route,
 		o:      o,
 	}
+	for _, routeInfo := range route.Routes() {
+		logger.Debug("route infos", zap.String("method", routeInfo.Method), zap.String("path", routeInfo.Path))
+	}
 	return s, nil, nil
 }
 
