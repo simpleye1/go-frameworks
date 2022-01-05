@@ -36,7 +36,7 @@ func (dc *GithubAPI) GithubHook(c *gin.Context) (interface{}, error) {
 	}
 	event, err := github.ParseWebHook(github.WebHookType(c.Request), payload)
 	if err != nil {
-		dc.logger.Error("could not parse webhook: err=%s\n", zap.Error(err))
+		dc.logger.Error("could not parse webhook", zap.Error(err))
 		return nil, err
 	}
 	dc.logger.Debug("github hook event", zap.String("event", github.WebHookType(c.Request)))
