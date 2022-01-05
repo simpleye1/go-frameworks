@@ -18,7 +18,7 @@ clean:
 	mkdir dist
 .PHONY: mock
 mock: clean
-	mockery --all
+	mockery --all --output ./tests/mocks
 .PHONY: test
 test: mock
 	go run github.com/google/wire/cmd/wire ./tests
