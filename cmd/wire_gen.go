@@ -19,6 +19,7 @@ import (
 	"test/internal/pkg/config"
 	"test/internal/pkg/context"
 	"test/internal/pkg/database"
+	"test/internal/pkg/githubapp"
 	"test/internal/pkg/log"
 	"test/internal/pkg/migrate"
 	"test/internal/pkg/redis"
@@ -92,6 +93,11 @@ func CreateApp(cf string) (*app.Application, func(), error) {
 		return nil, nil, err
 	}
 	redisStore := cachestore.NewRedisCache(client)
+	githubClient, err := githubapp.NewGithubApp()
+	if err != nil {
+		cleanup()
+		return nil, nil, err
+	}
 	appInfraContext := &context.AppInfraContext{
 		MigrateInit:   init,
 		TelemetryInit: telemetryInit,
@@ -102,12 +108,13 @@ func CreateApp(cf string) (*app.Application, func(), error) {
 		DB:            db,
 		CacheStore:    redisStore,
 		Context:       contextContext,
+		GithubApp:     githubClient,
 	}
 	api := apis.NewAPI(logger, appInfraContext)
 	postgresDetailRepository := repos.NewPostgresDetailsRepository(logger, gormDB)
 	postgresUserRepository := repos.NewPostgresUserRepository(logger, gormDB)
 	userDetailServiceImpl := services.NewUserDetailServiceImpl(logger, postgresDetailRepository, postgresUserRepository)
-	userDetailApplication := application.NewUserDetailsApplication(logger, userDetailServiceImpl)
+	userDetailApplication := application.NewUserDetailsApplication(logger, userDetailServiceImpl, githubClient)
 	userDetailAPI := apis.NewUserDetailAPI(api, userDetailApplication)
 	appContext := &context2.AppContext{
 		InfraContext:          appInfraContext,

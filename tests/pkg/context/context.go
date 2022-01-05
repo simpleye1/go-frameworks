@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	"github.com/google/go-github/v39/github"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -32,6 +33,11 @@ type TestInfraContext struct {
 	DB          *sql.DB
 	CacheStore  cachestore.Store
 	Context     context.Context
+	GithubApp   *github.Client
+}
+
+func (a *TestInfraContext) GetGithubApp() *github.Client {
+	return a.GithubApp
 }
 
 func (a *TestInfraContext) GetConfig() *viper.Viper {

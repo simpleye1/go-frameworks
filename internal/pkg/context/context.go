@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"github.com/gin-gonic/gin"
+	"github.com/google/go-github/v39/github"
 	"github.com/google/wire"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -11,6 +12,7 @@ import (
 	"test/internal/pkg/cachestore"
 	"test/internal/pkg/config"
 	"test/internal/pkg/database"
+	"test/internal/pkg/githubapp"
 	"test/internal/pkg/log"
 	"test/internal/pkg/migrate"
 	"test/internal/pkg/redis"
@@ -33,6 +35,7 @@ type AppInfraContext struct {
 	DB            *sql.DB
 	CacheStore    cachestore.Store
 	Context       context.Context
+	GithubApp     *github.Client
 }
 
 type InfraContext interface {
@@ -43,8 +46,12 @@ type InfraContext interface {
 	GetDB() *sql.DB
 	GetCacheStore() cachestore.Store
 	GetContext() context.Context
+	GetGithubApp() *github.Client
 }
 
+func (a *AppInfraContext) GetGithubApp() *github.Client {
+	return a.GithubApp
+}
 func (a *AppInfraContext) GetConfig() *viper.Viper {
 	return a.Config
 }
@@ -79,4 +86,5 @@ var ProviderSet = wire.NewSet(
 	http.ProviderSet,
 	cachestore.ProviderSetRedis,
 	telemetry.ProviderSet,
+	githubapp.ProviderSet,
 )
