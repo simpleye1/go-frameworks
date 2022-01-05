@@ -3,11 +3,11 @@ package context
 import (
 	"github.com/google/wire"
 	"test/internal/app/github/application"
-	services2 "test/internal/app/github/application/services"
-	"test/internal/app/github/domain/clients"
-	repos2 "test/internal/app/github/domain/repos"
+	servicesDef "test/internal/app/github/application/services"
+	clientsDef "test/internal/app/github/domain/clients"
+	reposDef "test/internal/app/github/domain/repos"
 	"test/internal/app/github/domain/services"
-	clients2 "test/internal/app/github/infrastructure/clients"
+	"test/internal/app/github/infrastructure/clients"
 	"test/internal/app/github/infrastructure/repos"
 	"test/internal/app/github/interfaces/apis"
 	"test/internal/pkg/context"
@@ -20,10 +20,10 @@ type AppContext struct {
 
 	*application.GithubApplication
 
-	repos2.UserRepository
-	repos2.DetailRepository
+	reposDef.UserRepository
+	reposDef.DetailRepository
 
-	services2.GithubService
+	servicesDef.GithubService
 }
 
 var ProviderSet = wire.NewSet(
@@ -50,18 +50,18 @@ var ApplicationProviderSet = wire.NewSet(
 )
 
 var ClientProviderSet = wire.NewSet(
-	clients2.NewGithubClientImpl,
-	wire.Bind(new(clients.GithubClient), new(*clients2.GithubClientImpl)),
+	clients.NewGithubClientImpl,
+	wire.Bind(new(clientsDef.GithubClient), new(*clients.GithubClientImpl)),
 )
 
 var ServiceProviderSet = wire.NewSet(
 	services.NewUserDetailServiceImpl,
-	wire.Bind(new(services2.GithubService), new(*services.GithubServiceImpl)),
+	wire.Bind(new(servicesDef.GithubService), new(*services.GithubServiceImpl)),
 )
 
 var RepoProviderSet = wire.NewSet(
 	repos.NewPostgresDetailsRepository,
 	repos.NewPostgresUserRepository,
-	wire.Bind(new(repos2.UserRepository), new(*repos.PostgresUserRepository)),
-	wire.Bind(new(repos2.DetailRepository), new(*repos.PostgresDetailRepository)),
+	wire.Bind(new(reposDef.UserRepository), new(*repos.PostgresUserRepository)),
+	wire.Bind(new(reposDef.DetailRepository), new(*repos.PostgresDetailRepository)),
 )

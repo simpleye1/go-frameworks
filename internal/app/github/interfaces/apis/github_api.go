@@ -6,7 +6,7 @@ import (
 	"go.uber.org/zap"
 	"io/ioutil"
 	"test/internal/app/github/application"
-	"test/internal/app/github/interfaces/exceptions"
+	"test/internal/pkg/app"
 )
 
 type GithubAPI struct {
@@ -59,7 +59,7 @@ func (dc *GithubAPI) GetRepoAllCommits(c *gin.Context) (interface{}, error) {
 	}{}
 	err := c.ShouldBindQuery(&param)
 	if err != nil {
-		return nil, exceptions.ParameterError(err.Error())
+		return nil, app.ParameterError(err.Error())
 	}
 	p, err := dc.application.GetRepoAllCommits(param.Owner, param.Repo, param.SHA, param.Page)
 	if err != nil {

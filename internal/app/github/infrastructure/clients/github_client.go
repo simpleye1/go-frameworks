@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/google/go-github/v41/github"
 	"test/internal/app/github/domain/clients"
-	"test/internal/app/github/domain/exceptions"
+	"test/internal/pkg/app"
 )
 
 type GithubClientImpl struct {
@@ -30,7 +30,7 @@ func (g GithubClientImpl) GetRepoAllCommits(owner string, repo string, sha strin
 		},
 	})
 	if r.StatusCode != 200 {
-		return nil, exceptions.BusinessError("github api get error")
+		return nil, app.BusinessError("github api get error")
 	}
 	if err != nil {
 		return nil, err

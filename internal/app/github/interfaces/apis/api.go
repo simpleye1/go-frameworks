@@ -4,8 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"net/http"
-	"test/internal/app/github/infrastructure/exceptions"
-	exception2 "test/internal/app/github/interfaces/exceptions"
+	"test/internal/pkg/app"
 	"test/internal/pkg/context"
 )
 
@@ -35,19 +34,19 @@ func wrapper(handler HandlerFunc) func(c *gin.Context) {
 		)
 		body, err = handler(c)
 		if err != nil {
-			var apiException *exceptions.AppException
-			if h, ok := err.(*exceptions.AppException); ok {
+			var apiException *app.Exception
+			if h, ok := err.(*app.Exception); ok {
 				apiException = h
 			} else if e, ok := err.(error); ok {
 				if gin.Mode() == "debug" {
 					// 错误
-					apiException = exception2.UnknownError(e.Error())
+					apiException = app.UnknownError(e.Error())
 				} else {
 					// 未知错误
-					apiException = exception2.UnknownError(e.Error())
+					apiException = app.UnknownError(e.Error())
 				}
 			} else {
-				apiException = exception2.ServerError()
+				apiException = app.ServerError()
 			}
 			apiException.Request = c.Request.Method + " " + c.Request.URL.String()
 			c.JSON(apiException.Code, apiException)

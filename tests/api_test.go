@@ -13,7 +13,7 @@ func TestGithubApi(t *testing.T) {
 	flag.Parse()
 	us := new(mocks.GithubService)
 	var rcs = []*clients.RepoCommit{
-		&clients.RepoCommit{
+		{
 			SHA:       "sha",
 			Commit:    "commit",
 			Committer: "user",
@@ -31,6 +31,6 @@ func TestGithubApi(t *testing.T) {
 	if err != nil {
 		t.Fatalf("get userDetail api  error,%+v", err)
 	}
-	resp := callAPI(api.API, "GET", "/commits?owner=owner&repo=repo&page=0", nil)
+	resp := callAPI(api.API, "GET", "/github/commits?owner=owner&repo=repo&page=0", nil)
 	assert.Equal(t, 200, resp.StatusCode)
 }
