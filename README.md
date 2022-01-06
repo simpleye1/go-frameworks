@@ -40,7 +40,7 @@ app里放置**业务代码**，采用DDD模式，分成四层架构：
 * interface定义api接收参数并校验规整,调用application
 * application用接口调domain，主要用来业务聚合
 * domain实现上层接口，完成单一领域逻辑，并用接口调用infra
-* infa实现上层接口，使用基础设施
+* infra实现上层接口，使用基础设施
 
 **接口与实现之间需要用wire绑定**
 
@@ -52,14 +52,15 @@ app里放置**业务代码**，采用DDD模式，分成四层架构：
 - api测试
 - service测试
 
-api测试包括哪些层
+api测试包括interface和application层，mock掉service层
 
-service测试包括
+service测试包括domain层和infra层
 
 wire依赖注入
 -------
 
-wire总体包含两个包，当你要新增一个包，需要提供provide，需要在上层注册进去
+当你要新增一个依赖，需要注册进入provideSet，并在最上层的Contex中注册，如果Contex有接口实现，应该在接口中也注册
+
 
 其他信息
 -------
