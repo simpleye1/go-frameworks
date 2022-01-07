@@ -59,7 +59,7 @@ service测试包括domain层和infra层
 wire依赖注入
 -------
 
-当你要新增一个依赖，需要注册进入provideSet，并在最上层的Contex中注册，如果Contex有接口实现，应该在接口中也注册
+当你要新增一个依赖，需要注册进入provideSet，并在最上层的Contex中注册
 
 
 其他信息
